@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "channels",
     "chat"
 ]
-ASGI_APPLICATION = "RentEase.asgi.application"
+ASGI_APPLICATION = "SyncWrite.asgi.application"
 BASE_URL = "http://localhost:8000"
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
@@ -64,7 +64,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "RentEase.urls"
+ROOT_URLCONF = "SyncWrite.urls"
 
 TEMPLATES = [
     {
