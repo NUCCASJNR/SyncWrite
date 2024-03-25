@@ -44,12 +44,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # 'authtoken',
     "corsheaders",
-    "rental",
+    "sync",
     "rest_framework",
     "rest_framework_simplejwt",
     "drf_yasg",
-    "channels",
-    "chat"
+    "channels"
 ]
 ASGI_APPLICATION = "SyncWrite.asgi.application"
 BASE_URL = "http://localhost:8000"
@@ -223,6 +222,8 @@ MEDIA_URL = "/tmp/"
 # CELERY_BROKER_URL = 'redis://localhost:6379/0'
 # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_BROKER_URL = os.getenv("PROD_CELERY_BROKER_URL")
+print(CELERY_BROKER_URL)
 CELERY_RESULT_BACKEND = os.getenv("PROD_CELERY_RESULT_BACKEND")
 
 CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+print(CLOUDINARY_URL)
