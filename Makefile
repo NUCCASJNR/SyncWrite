@@ -88,3 +88,4 @@ help:
 	@echo "  reqm         Install Python dependencies from requirements.txt"
 	@echo "  ureqm        Update requirements.txt with installed packages"
 	@echo "  secretk      Generate a random Django secret key"
+

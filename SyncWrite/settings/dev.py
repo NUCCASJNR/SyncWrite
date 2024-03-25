@@ -82,7 +82,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "RentEase.wsgi.application"
+WSGI_APPLICATION = "SyncWrite.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -149,7 +149,7 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "rental.MainUser"
+AUTH_USER_MODEL = "sync.MainUser"
 
 # CORS_ALLOW_ALL_ORIGINS=True
 
@@ -192,7 +192,7 @@ CORS_ALLOW_HEADERS = [
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rental.utils.auth.CustomBackend",
+        "sync.utils.auth.CustomBackend",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
 }
@@ -212,7 +212,7 @@ SIMPLE_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    "rental.utils.auth.CustomBackend",
+    "sync.utils.auth.CustomBackend",
     # 'django.contrib.auth.backends.ModelBackend',
 ]
 # MEDIA_URL = '/media/'
