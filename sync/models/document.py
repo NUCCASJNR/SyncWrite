@@ -19,3 +19,18 @@ class Document(BaseModel):
 
     def __str__(self):
         return self.title
+
+
+class DocumentRevision(BaseModel):
+    """
+    Document revision model
+    """
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='revisions')
+    content = models.TextField()
+    editor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='edited_documents')
+
+    class Meta:
+        db_table = 'document_revisions'
+
+    def __str__(self):
+        return self.document.title

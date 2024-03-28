@@ -40,6 +40,8 @@ mig: # Run with "make mig" or "make mig app='app'"
 	else \
 		python3 manage.py migrate "$(app)"; \
 	fi
+migrate:
+	python3 manage.py migrate
 
 init:
 	python3 manage.py initial_data
