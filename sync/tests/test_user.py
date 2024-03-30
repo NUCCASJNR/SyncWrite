@@ -1,5 +1,6 @@
 import unittest
-from sync.models.user import MainUser as User
+from sync.models.user import MainUser as User, hash_password
+import uuid
 
 
 class UserModelTestCase(unittest.TestCase):
@@ -7,11 +8,11 @@ class UserModelTestCase(unittest.TestCase):
         self.user_data = {
             'username': 'testuser',
             'email': 'testuser@example.com',
-            'password': 'testpassword',
+            'password': hash_password('testpassword'),
             'first_name': 'dan',
             'last_name': 'hunter'
         }
-        self.user = User.objects.create_user(**self.user_data)
+        self.user = User.custom_save(**self.user_data)
 
     def test_user_creation(self):
         """Test that a user is created successfully"""
@@ -19,6 +20,10 @@ class UserModelTestCase(unittest.TestCase):
         self.assertEqual(self.user.email, 'testuser@example.com')
         # Ensure that the user's password is set correctly
         self.assertTrue(self.user.check_password('testpassword'))
+
+    def test_user_id_type(self):
+        """Confirm user id is a valid UUID"""
+        self.assertIsInstance(uuid.UUID(str(self.user.id)), uuid.UUID)
 
     def test_user_string_representation(self):
         """Test that the string representation of the user is correct"""
