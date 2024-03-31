@@ -17,7 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from sync.views.auth import ( SignUpViewSet,
-                             EmailVerficationView
+                             EmailVerficationView,
+                             LoginView
                              )
 
 router = routers.DefaultRouter()
@@ -27,5 +28,6 @@ router.register('auth/signup', SignUpViewSet, basename='signup')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('verify-email/', EmailVerficationView.as_view(), name='verify-email')
+    path('verify-email/', EmailVerficationView.as_view(), name='verify-email'),
+    path('auth/login/', LoginView.as_view(), name='login'),
 ]
