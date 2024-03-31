@@ -16,13 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
-from sync.views.auth import SignUpViewSet
+from sync.views.auth import ( SignUpViewSet,
+                             EmailVerficationView
+                             )
 
 router = routers.DefaultRouter()
-router.register('signup', SignUpViewSet)
+router.register('auth/signup', SignUpViewSet, basename='signup')
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include(router.urls))
+    path('', include(router.urls)),
+    path('verify-email/', EmailVerficationView.as_view(), name='verify-email')
 ]
