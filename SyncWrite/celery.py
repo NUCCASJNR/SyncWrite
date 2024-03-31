@@ -16,7 +16,8 @@ app = Celery('SyncWrite')
 # Load the Django settings for Celery
 app.config_from_object('django.conf:settings', namespace='CELERY')
 # Auto-discover tasks
-app.autodiscover_tasks()
+app.autodiscover_tasks(['sync.utils'])
+
 print("Modules with Celery tasks:", app.loader.task_modules)
 
 # Set Celery log level to debug

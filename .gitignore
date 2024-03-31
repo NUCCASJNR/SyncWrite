@@ -4,3 +4,5 @@
 SyncWrite/**/__pycache__/
 SyncWrite/**/settings/__pycache__/
 sync/**/__pycache__/
+celery.log
+celery.log
