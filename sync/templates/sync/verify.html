@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to SyncWrite</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1, p {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to SyncWrite</h1>
+        <p>Hello {{ username }},</p>
+        <p>Thank you for joining SyncWrite. We're excited to have you onboard!</p>
+        <p style="margin-bottom: 20px;">Getting started with syncing and collaborating on documents has never been easier.</p>
+        <p>Your verification code is: <strong>{{ verification_code }}</strong></p>
+        <p>Please use this code to verify your account and unlock all the features of SyncWrite.</p>
+        <p>If you have any questions or need assistance, feel free to reach out to our support team.</p>
+        <p style="margin-top: 20px;">Happy syncing!</p>
+    </div>
+</body>
+</html>

@@ -10,6 +10,7 @@ from sync.models.user import MainUser as User
 import secrets
 import requests
 from dotenv import load_dotenv
+from django.template.loader import render_to_string
 
 load_dotenv()
 API_KEY = getenv("ELASTIC_EMAIL_KEY")
@@ -38,12 +39,11 @@ class EmailUtils:
     @staticmethod
     def send_verification_email(user, verification_code):
         url = "https://api.elasticemail.com/v2/email/send"
-        # context = {
-        #     'verification_code': verification_code,
-        #     'first_name': user.first_name,
-        #     'last_name': user.last_name,
-        # }
-        # html_template = render_to_string("parent/second.html", context)
+        context = {
+            'verification_code': verification_code,
+            'username': user.username,
+        }
+        html_template = render_to_string("sync/verify.html", context)
         redis_client = RedisClient()
         key = f'user_id:{user.id}:{verification_code}'
         request_payload = {
@@ -51,9 +51,7 @@ class EmailUtils:
             "from": getenv("EMAIL_SENDER"),
             "to": user.email,
             "subject": "Verify your account",
-            "bodyHtml": f"Hello {user.username}, <p>Welcome to REntEase,"
-                        f" Getting apartment couldn't have been much easier"
-                        f"<p> <br> Your verification code is: {verification_code}</br>",
+            "bodyHtml": html_template,
             "isTransactional": False,
         }
 
