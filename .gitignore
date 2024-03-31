@@ -1,2 +1,6 @@
 /sync_venv/
 /.env
+.idea
+SyncWrite/**/__pycache__/
+SyncWrite/**/settings/__pycache__/
+sync/**/__pycache__/

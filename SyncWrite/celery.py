@@ -17,6 +17,7 @@ app = Celery('SyncWrite')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 # Auto-discover tasks
 app.autodiscover_tasks()
+print("Modules with Celery tasks:", app.loader.task_modules)
 
 # Set Celery log level to debug
 app.conf.update(
