@@ -16,7 +16,7 @@ from sync.utils.tasks import send_verification_email_async, EmailUtils
 from sync.utils.redis_utils import RedisClient
 
 
-class SignUpView(viewsets.ModelViewSet):
+class SignUpViewSet(viewsets.ModelViewSet):
     """Signup View"""
 
     serializer_class = SignUpSerializer
