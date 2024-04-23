@@ -14,6 +14,7 @@ from sync.serializers.auth import LoginSerializer
 from sync.serializers.auth import SignUpSerializer
 from sync.utils.tasks import send_verification_email_async, EmailUtils
 from sync.utils.redis_utils import RedisClient
+from sync.utils.auth import get_client_ip
 
 
 class SignUpViewSet(viewsets.ModelViewSet):
@@ -34,6 +35,7 @@ class SignUpViewSet(viewsets.ModelViewSet):
             user = MainUser.custom_save(**serializer.validated_data,
                                         verification_code=verification_code)
             send_verification_email_async(user, verification_code)
+            get_client_ip(request)
             return Response({
                 "message":
                     "You have successfully signed up. Please check your"
