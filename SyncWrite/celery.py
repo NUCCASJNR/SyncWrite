@@ -18,8 +18,6 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 # Auto-discover tasks
 app.autodiscover_tasks(['sync.utils'])
 
-print("Modules with Celery tasks:", app.loader.task_modules)
-
 # Set Celery log level to debug
 app.conf.update(
     task_track_started=True,  # Track the started state of tasks (optional)
