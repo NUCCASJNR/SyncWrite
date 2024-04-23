@@ -44,5 +44,4 @@ def get_client_ip(request):
         client_ip = x_forwarded_for.split(',')[0].strip()
     else:
         client_ip = request.META.get('REMOTE_ADDR')
-
     return client_ip

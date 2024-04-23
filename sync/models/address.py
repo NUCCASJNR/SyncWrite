@@ -3,7 +3,7 @@
 from sync.models.user import BaseModel, models, MainUser
 
 
-class IPAddress(models.Model):
+class IPAddress(BaseModel):
     address = models.CharField(max_length=45, unique=True)
     user = models.OneToOneField(MainUser, on_delete=models.CASCADE)
 

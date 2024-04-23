@@ -15,6 +15,7 @@ from sync.serializers.auth import SignUpSerializer
 from sync.utils.tasks import send_verification_email_async, EmailUtils
 from sync.utils.redis_utils import RedisClient
 from sync.utils.auth import get_client_ip
+from sync.models.address import IPAddress
 
 
 class SignUpViewSet(viewsets.ModelViewSet):
@@ -34,8 +35,10 @@ class SignUpViewSet(viewsets.ModelViewSet):
             serializer.validated_data["password"] = hashed_password
             user = MainUser.custom_save(**serializer.validated_data,
                                         verification_code=verification_code)
+            print(user)
             send_verification_email_async(user, verification_code)
-            get_client_ip(request)
+            client_ip=get_client_ip(request)
+            IPAddress.custom_save(address=client_ip, user=user)
             return Response({
                 "message":
                     "You have successfully signed up. Please check your"
@@ -91,6 +94,7 @@ class EmailVerficationView(APIView):
                     })
             redis_cli = RedisClient()
             if user and redis_cli.get_key(key):
+                print(redis_cli.get_key(key))
                 MainUser.custom_update(
                     filter_kwargs={"verification_code": code},
                     update_kwargs={"is_verified": True},
@@ -136,13 +140,21 @@ class LoginView(APIView):
                         "error": "You need to verify your account to login",
                         "status": status.HTTP_400_BAD_REQUEST,
                     })
-                login(request, user)
-                refresh = RefreshToken.for_user(user)
-                return Response({
-                    "message": "You have successfully logged in",
-                    "access_token": str(refresh.access_token),
-                    "status": status.HTTP_200_OK,
-                })
+                ip = get_client_ip(request)
+                u = IPAddress.custom_get(address=ip)
+                if u != None and str(u.user) == user.email:    
+                    login(request, user)
+                    refresh = RefreshToken.for_user(user)
+                    return Response({
+                        "message": "You have successfully logged in",
+                        "access_token": str(refresh.access_token),
+                        "status": status.HTTP_200_OK,
+                    })
+                elif IPAddress.custom_get(user=user) and IPAddress.custom_get(user=user).address != ip:
+                    return Response({
+                        'message': 'We noticed a suspicious login attempt, please verify your device to continue',
+                        'status': status.HTTP_400_BAD_REQUEST
+                        })      
             return Response({
                 "error": "Invalid email or password",
                 "status": status.HTTP_400_BAD_REQUEST,
