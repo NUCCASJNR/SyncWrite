@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Verification</title>
+    <style>
+        /* Add your custom styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .verification-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .message {
+            margin-bottom: 30px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://imgur.com/e5dhNAd.png" alt="Your Company Logo" width="150">
+        </div>
+        <h2>Device Verification Required</h2>
+        <p class="message">Dear {{ user.username }},</p>
+        <p>We noticed a sign-in attempt from a new device/IP address on your account. For security purposes, we require verification of this device before you can continue to sign in.</p>
+        <p>Please use the following verification code to confirm the device:</p>
+        <p class="verification-code">{{ verification_code }}</p>
+        <p>If you did not initiate this sign-in attempt or if you have any concerns about the security of your account, please contact our support team immediately.</p>
+        <p>Thank you for helping us keep your account secure.</p>
+        <div class="footer">
+            This email was sent automatically. Please do not reply to this email.
+        </div>
+    </div>
+</body>
+</html>
