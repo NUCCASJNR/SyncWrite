@@ -139,7 +139,6 @@ class LoginView(APIView):
             email = serializer.validated_data["email"]
             password = serializer.validated_data["password"]
             user = authenticate(request, username=email, password=password)
-            print(user)
             if user is not None:
                 if not user.is_verified:
                     return Response({
@@ -148,7 +147,6 @@ class LoginView(APIView):
                     })
                 ip = get_client_ip(request)
                 u = IPAddress.objects.get(address=ip)
-                print(IPAddress.to_dict(u))
                 if u != None and str(u.user) == user.email:    
                     login(request, user)
                     refresh = RefreshToken.for_user(user)
@@ -160,7 +158,6 @@ class LoginView(APIView):
                 elif IPAddress.objects.get(user=user) and IPAddress.objects.get(user=user).address != ip:
                     device_id = str(uuid4())
                     request.session['device_id'] = f'{user.id}:{device_id}'
-                    print(request.session['device_id'])
                     send_new_login_detected_email_async(user, ip)
                     return Response({
                         'message': 'We noticed a suspicious login attempt, please verify your device to continue',
@@ -192,12 +189,12 @@ class VerifyDeviceView(APIView):
         code = request.data
         redis_client = RedisClient()
         user_id = request.session['device_id'].split(':')[0]
-        print(user_id)
         user = MainUser.custom_get(**{'id': user_id})
         key = f'Device:{ip}:{code}'
         if redis_client.get_key(key):
             IPAddress.custom_save(address=ip, user=user)
             redis_client.delete_key(key)
+            del request.session['device_id']
             return Response({
                 'message': 'Device has been successfully verified',
                 'status': status.HTTP_200_OK
