@@ -15,6 +15,6 @@ def send_verification_email_async(user, verification_code):
     EmailUtils.send_verification_email(user, verification_code)
 
 @shared_task
-def send_new_login_detected_email_async(user):
+def send_new_login_detected_email_async(user, ip_address):
     logger.info(f"New login detected for user {user.username}")
-    EmailUtils.send_new_login_detected_email(user)
+    EmailUtils.send_new_login_detected_email(user, ip_address)

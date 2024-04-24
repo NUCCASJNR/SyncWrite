@@ -154,7 +154,7 @@ class LoginView(APIView):
                         "status": status.HTTP_200_OK,
                     })
                 elif IPAddress.custom_get(user=user) and IPAddress.custom_get(user=user).address != ip:
-                    send_new_login_detected_email_async(user)
+                    send_new_login_detected_email_async(user, ip)
                     return Response({
                         'message': 'We noticed a suspicious login attempt, please verify your device to continue',
                         'status': status.HTTP_400_BAD_REQUEST
@@ -167,3 +167,35 @@ class LoginView(APIView):
             "error": serializer.errors,
             "status": status.HTTP_400_BAD_REQUEST
         })
+
+
+class VerifyDeviceView(APIView):
+    """View for verifying a device"""
+
+    def post(self, request, *args, **kwargs):
+        """Verify a device
+
+        :param request: The request object
+        :param args: The args
+        :param kwargs: The keyword args
+        :returns: The response
+
+        """
+        user = request.user
+        print(user)
+        ip = get_client_ip(request)
+
+        code = request.data
+        redis_client = RedisClient()
+        key = f'Device:{ip}:{code}'
+        if redis_client.get_key(key):
+            IPAddress.custom_save(address=ip, user=user)
+            return Response({
+                'message': 'Device has been successfully verified',
+                'status': status.HTTP_200_OK
+            })
+        return Response({
+            'error': 'Invalid or expired verification code',
+            'status': status.HTTP_400_BAD_REQUEST
+        })
+    

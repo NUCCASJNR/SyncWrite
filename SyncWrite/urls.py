@@ -18,7 +18,8 @@ from django.urls import path, include
 from rest_framework import routers
 from sync.views.auth import ( SignUpViewSet,
                              EmailVerficationView,
-                             LoginView
+                             LoginView,
+                             VerifyDeviceView
                              )
 
 router = routers.DefaultRouter()
@@ -30,4 +31,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('verify-email/', EmailVerficationView.as_view(), name='verify-email'),
     path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/verify-device/', VerifyDeviceView.as_view(), name='verify-device')
 ]

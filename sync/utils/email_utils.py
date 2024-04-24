@@ -98,7 +98,7 @@ class EmailUtils:
             return False
     
     @staticmethod
-    def send_new_login_detected_email(user: User):
+    def send_new_login_detected_email(user: User, ip_address: int):
         """
         Sends an email to the user when a new login is detected
         """
@@ -107,6 +107,9 @@ class EmailUtils:
             'username': user.username,
             'verification_code': EmailUtils.generate_verification_code()
         }
+        redis_client = RedisClient()
+        key = f'Device:{ip_address}:{context["verification_code"]}'
+        redis_client.set_key(key, context["verification_code"], expiry=30)
         template = render_to_string("sync/new_login_detected.html", context)
         request_payload = {
             "apikey": API_KEY,
