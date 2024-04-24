@@ -4,11 +4,12 @@ from sync.models.user import BaseModel, models, MainUser
 
 
 class IPAddress(BaseModel):
-    address = models.CharField(max_length=45, unique=True)
-    user = models.OneToOneField(MainUser, on_delete=models.CASCADE)
+    address = models.CharField(max_length=45)
+    user = models.ForeignKey(MainUser, on_delete=models.CASCADE, related_name='authorized_ips')
 
     def __str__(self):
         return self.address
     
     class Meta:
         db_table = 'ip_addresses'
+        unique_together = ['address', 'user']
