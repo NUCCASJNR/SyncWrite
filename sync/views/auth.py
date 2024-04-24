@@ -20,6 +20,7 @@ from sync.utils.tasks import (
 from sync.utils.redis_utils import RedisClient
 from sync.utils.auth import get_client_ip
 from sync.models.address import IPAddress
+from uuid import uuid4
 
 
 class SignUpViewSet(viewsets.ModelViewSet):
@@ -39,6 +40,7 @@ class SignUpViewSet(viewsets.ModelViewSet):
             serializer.validated_data["password"] = hashed_password
             user = MainUser.custom_save(**serializer.validated_data,
                                         verification_code=verification_code)
+            print(user)
             send_verification_email_async(user, verification_code)
             client_ip=get_client_ip(request)
             IPAddress.custom_save(address=client_ip, user=user)
@@ -137,6 +139,7 @@ class LoginView(APIView):
             email = serializer.validated_data["email"]
             password = serializer.validated_data["password"]
             user = authenticate(request, username=email, password=password)
+            print(user)
             if user is not None:
                 if not user.is_verified:
                     return Response({
@@ -144,7 +147,8 @@ class LoginView(APIView):
                         "status": status.HTTP_400_BAD_REQUEST,
                     })
                 ip = get_client_ip(request)
-                u = IPAddress.custom_get(address=ip)
+                u = IPAddress.objects.get(address=ip)
+                print(IPAddress.to_dict(u))
                 if u != None and str(u.user) == user.email:    
                     login(request, user)
                     refresh = RefreshToken.for_user(user)
@@ -153,7 +157,10 @@ class LoginView(APIView):
                         "access_token": str(refresh.access_token),
                         "status": status.HTTP_200_OK,
                     })
-                elif IPAddress.custom_get(user=user) and IPAddress.custom_get(user=user).address != ip:
+                elif IPAddress.objects.get(user=user) and IPAddress.objects.get(user=user).address != ip:
+                    device_id = str(uuid4())
+                    request.session['device_id'] = f'{user.id}:{device_id}'
+                    print(request.session['device_id'])
                     send_new_login_detected_email_async(user, ip)
                     return Response({
                         'message': 'We noticed a suspicious login attempt, please verify your device to continue',
@@ -181,15 +188,16 @@ class VerifyDeviceView(APIView):
         :returns: The response
 
         """
-        user = request.user
-        print(user)
         ip = get_client_ip(request)
-
         code = request.data
         redis_client = RedisClient()
+        user_id = request.session['device_id'].split(':')[0]
+        print(user_id)
+        user = MainUser.custom_get(**{'id': user_id})
         key = f'Device:{ip}:{code}'
         if redis_client.get_key(key):
             IPAddress.custom_save(address=ip, user=user)
+            redis_client.delete_key(key)
             return Response({
                 'message': 'Device has been successfully verified',
                 'status': status.HTTP_200_OK
