@@ -96,4 +96,35 @@ class EmailUtils:
         except Exception as e:
             print(f'Error sending password reset email to {user.email}: {e}')
             return False
+    
+    @staticmethod
+    def send_new_login_detected_email(user: User):
+        """
+        Sends an email to the user when a new login is detected
+        """
+        url = "https://api.elasticemail.com/v2/email/send"
+        context = {
+            'username': user.username,
+            'verification_code': EmailUtils.generate_verification_code()
+        }
+        template = render_to_string("sync/new_login_detected.html", context)
+        request_payload = {
+            "apikey": API_KEY,
+            "from": getenv("EMAIL_SENDER"),
+            "to": user.email,
+            "subject": "New login detected",
+            "bodyHtml": template,
+            "isTransactional": False
+        }
+        try:
+            response = requests.post(url, data=request_payload)
+            if response.status_code == 200:
+                return True
+            else:
+                print(f'Error sending new login detected email to {user.email}')
+                return False
+            
+        except Exception as e:
+            print(f'Error sending new login detected email to {user.email}: {e}')
+            return False
 
