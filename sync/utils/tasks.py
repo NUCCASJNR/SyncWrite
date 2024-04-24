@@ -14,3 +14,7 @@ logger.setLevel(logging.DEBUG)
 def send_verification_email_async(user, verification_code):
     EmailUtils.send_verification_email(user, verification_code)
 
+@shared_task
+def send_new_login_detected_email_async(user):
+    logger.info(f"New login detected for user {user.username}")
+    EmailUtils.send_new_login_detected_email(user)

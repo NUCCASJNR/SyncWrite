@@ -12,7 +12,11 @@ from sync.models.user import MainUser, hash_password
 from sync.serializers.auth import EmailVerificationSerializer
 from sync.serializers.auth import LoginSerializer
 from sync.serializers.auth import SignUpSerializer
-from sync.utils.tasks import send_verification_email_async, EmailUtils
+from sync.utils.tasks import (
+    send_verification_email_async,
+    EmailUtils,
+    send_new_login_detected_email_async
+)
 from sync.utils.redis_utils import RedisClient
 from sync.utils.auth import get_client_ip
 from sync.models.address import IPAddress
@@ -35,7 +39,6 @@ class SignUpViewSet(viewsets.ModelViewSet):
             serializer.validated_data["password"] = hashed_password
             user = MainUser.custom_save(**serializer.validated_data,
                                         verification_code=verification_code)
-            print(user)
             send_verification_email_async(user, verification_code)
             client_ip=get_client_ip(request)
             IPAddress.custom_save(address=client_ip, user=user)
@@ -151,6 +154,7 @@ class LoginView(APIView):
                         "status": status.HTTP_200_OK,
                     })
                 elif IPAddress.custom_get(user=user) and IPAddress.custom_get(user=user).address != ip:
+                    send_new_login_detected_email_async(user)
                     return Response({
                         'message': 'We noticed a suspicious login attempt, please verify your device to continue',
                         'status': status.HTTP_400_BAD_REQUEST
