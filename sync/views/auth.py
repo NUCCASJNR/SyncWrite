@@ -92,7 +92,7 @@ class EmailVerficationView(APIView):
         """
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            code = serializer.validated_data["verification_code"]
+            code = serializer.validated_data.get("verification_code")
             user = MainUser.custom_get(**{"verification_code": code})
             key = None
             if user is not None:
@@ -124,68 +124,6 @@ class EmailVerficationView(APIView):
             "status": status.HTTP_400_BAD_REQUEST
         })
 
-
-class LoginView(APIView):
-    """View for logging in a user"""
-
-    serializer_class = LoginSerializer
-
-    def post(self, request, *args, **kwargs):
-        """Log in a user
-
-        :param request: The request object
-        :param args: The args
-        :param kwargs: The keyword args
-        :returns: The response
-
-        """
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data["email"]
-            password = serializer.validated_data["password"]
-            user = authenticate(request, username=email, password=password)
-            if user is not None:
-                if not user.is_verified:
-                    return Response({
-                        "error": "You need to verify your account to login",
-                        "status": status.HTTP_400_BAD_REQUEST,
-                    })
-
-                ip = get_client_ip(request)
-                ip_addresses = IPAddress.objects.filter(address=ip, user=user)
-                if ip_addresses.exists():
-                    # If there are IP addresses associated with the user and current IP matches
-                    login(request, user)
-                    refresh = RefreshToken.for_user(user)
-                    return Response({
-                        "message": "You have successfully logged in",
-                        "access_token": str(refresh.access_token),
-                        "status": status.HTTP_200_OK,
-                    })
-                elif IPAddress.objects.filter(user=user).exists():
-                    # If there are IP addresses associated with the user but current IP doesn't match
-                    device_id = str(uuid4())
-                    request.session['device_id'] = f'{user.id}:{device_id}'
-                    send_new_login_detected_email_async(user, ip)
-                    return Response({
-                        'message': 'We noticed a suspicious login attempt, please verify your device to continue',
-                        'status': status.HTTP_400_BAD_REQUEST
-                    })
-                else:
-                    # If no IP addresses associated with the user
-                    return Response({
-                        "error": "No IP addresses associated with the user",
-                        "status": status.HTTP_400_BAD_REQUEST,
-                    })
-
-            return Response({
-                "error": "Invalid email or password",
-                "status": status.HTTP_400_BAD_REQUEST,
-            })
-        return Response({
-            "error": serializer.errors,
-            "status": status.HTTP_400_BAD_REQUEST
-        })
 
 
 class LoginView(APIView):

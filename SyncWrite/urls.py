@@ -20,7 +20,8 @@ from sync.views.auth import ( SignUpViewSet,
                              EmailVerficationView,
                              LoginView,
                              VerifyDeviceView,
-                             
+                             ResetPasswordView,
+                             CreateNewPasswordView
                              )
 
 router = routers.DefaultRouter()
@@ -30,7 +31,9 @@ router.register('auth/signup', SignUpViewSet, basename='signup')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(router.urls)),
-    path('verify-email/', EmailVerficationView.as_view(), name='verify-email'),
+    path('auth/verify/', EmailVerficationView.as_view(), name='verify-email'),
     path('auth/login/', LoginView.as_view(), name='login'),
-    path('auth/verify-device/', VerifyDeviceView.as_view(), name='verify-device')
+    path('auth/verify-device/', VerifyDeviceView.as_view(), name='verify-device'),
+    path('auth/reset-password/', ResetPasswordView.as_view()),
+    path('auth/create-password/', CreateNewPasswordView.as_view())
 ]
