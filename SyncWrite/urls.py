@@ -19,7 +19,8 @@ from rest_framework import routers
 from sync.views.auth import ( SignUpViewSet,
                              EmailVerficationView,
                              LoginView,
-                             VerifyDeviceView
+                             VerifyDeviceView,
+                             
                              )
 
 router = routers.DefaultRouter()

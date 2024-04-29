@@ -18,3 +18,6 @@ def send_verification_email_async(user, verification_code):
 def send_new_login_detected_email_async(user, ip_address):
     logger.info(f"New login detected for user {user.username}")
     EmailUtils.send_new_login_detected_email(user, ip_address)
+    
+def send_reset_password_email_async(user, reset_code):
+    EmailUtils.send_reset_password_email(user, reset_code)

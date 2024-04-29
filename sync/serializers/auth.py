@@ -37,3 +37,23 @@ class LoginSerializer(serializers.ModelSerializer):
         model = MainUser
         fields = ('email', 'password')
 
+
+class ResetPasswordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Resetting user password
+    """
+    email = serializers.CharField(required=True)
+    
+    class Meta:
+        model = MainUser
+        fields = ('email', )
+        
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for changing user password
+    """
+    password = serializers.CharField(required=True)
+    
+    class Meta:
+        model = MainUser
+        fields = ('password', 'reset_code')

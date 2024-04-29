@@ -9,18 +9,24 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from sync.models.user import MainUser, hash_password
-from sync.serializers.auth import EmailVerificationSerializer
-from sync.serializers.auth import LoginSerializer
-from sync.serializers.auth import SignUpSerializer
+from sync.serializers.auth import (
+    SignUpSerializer,
+    EmailVerificationSerializer,
+    LoginSerializer,
+    ChangePasswordSerializer,
+    ResetPasswordSerializer
+)
 from sync.utils.tasks import (
     send_verification_email_async,
     EmailUtils,
-    send_new_login_detected_email_async
+    send_new_login_detected_email_async,
+    send_reset_password_email_async
 )
 from sync.utils.redis_utils import RedisClient
 from sync.utils.auth import get_client_ip
 from sync.models.address import IPAddress
 from uuid import uuid4
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class SignUpViewSet(viewsets.ModelViewSet):
@@ -40,7 +46,6 @@ class SignUpViewSet(viewsets.ModelViewSet):
             serializer.validated_data["password"] = hashed_password
             user = MainUser.custom_save(**serializer.validated_data,
                                         verification_code=verification_code)
-            print(user)
             send_verification_email_async(user, verification_code)
             client_ip=get_client_ip(request)
             IPAddress.custom_save(address=client_ip, user=user)
@@ -145,9 +150,11 @@ class LoginView(APIView):
                         "error": "You need to verify your account to login",
                         "status": status.HTTP_400_BAD_REQUEST,
                     })
+
                 ip = get_client_ip(request)
-                u = IPAddress.objects.get(address=ip)
-                if u != None and str(u.user) == user.email:    
+                ip_addresses = IPAddress.objects.filter(address=ip, user=user)
+                if ip_addresses.exists():
+                    # If there are IP addresses associated with the user and current IP matches
                     login(request, user)
                     refresh = RefreshToken.for_user(user)
                     return Response({
@@ -155,14 +162,85 @@ class LoginView(APIView):
                         "access_token": str(refresh.access_token),
                         "status": status.HTTP_200_OK,
                     })
-                elif IPAddress.objects.get(user=user) and IPAddress.objects.get(user=user).address != ip:
+                elif IPAddress.objects.filter(user=user).exists():
+                    # If there are IP addresses associated with the user but current IP doesn't match
                     device_id = str(uuid4())
                     request.session['device_id'] = f'{user.id}:{device_id}'
                     send_new_login_detected_email_async(user, ip)
                     return Response({
                         'message': 'We noticed a suspicious login attempt, please verify your device to continue',
                         'status': status.HTTP_400_BAD_REQUEST
-                        })      
+                    })
+                else:
+                    # If no IP addresses associated with the user
+                    return Response({
+                        "error": "No IP addresses associated with the user",
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    })
+
+            return Response({
+                "error": "Invalid email or password",
+                "status": status.HTTP_400_BAD_REQUEST,
+            })
+        return Response({
+            "error": serializer.errors,
+            "status": status.HTTP_400_BAD_REQUEST
+        })
+
+
+class LoginView(APIView):
+    """View for logging in a user"""
+
+    serializer_class = LoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        """Log in a user
+
+        :param request: The request object
+        :param args: The args
+        :param kwargs: The keyword args
+        :returns: The response
+
+        """
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                if not user.is_verified:
+                    return Response({
+                        "error": "You need to verify your account to login",
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    })
+
+                ip = get_client_ip(request)
+                ip_addresses = IPAddress.objects.filter(address=ip, user=user)
+                if ip_addresses.exists():
+                    # If there are IP addresses associated with the user and current IP matches
+                    login(request, user)
+                    refresh = RefreshToken.for_user(user)
+                    return Response({
+                        "message": "You have successfully logged in",
+                        "access_token": str(refresh.access_token),
+                        "status": status.HTTP_200_OK,
+                    })
+                elif IPAddress.objects.filter(user=user).exists():
+                    # If there are IP addresses associated with the user but current IP doesn't match
+                    device_id = str(uuid4())
+                    request.session['device_id'] = f'{user.id}:{device_id}'
+                    send_new_login_detected_email_async(user, ip)
+                    return Response({
+                        'message': 'We noticed a suspicious login attempt, please verify your device to continue',
+                        'status': status.HTTP_400_BAD_REQUEST
+                    })
+                else:
+                    # If no IP addresses associated with the user
+                    return Response({
+                        "error": "No IP addresses associated with the user",
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    })
+
             return Response({
                 "error": "Invalid email or password",
                 "status": status.HTTP_400_BAD_REQUEST,
@@ -194,7 +272,6 @@ class VerifyDeviceView(APIView):
         if redis_client.get_key(key):
             IPAddress.custom_save(address=ip, user=user)
             redis_client.delete_key(key)
-            del request.session['device_id']
             return Response({
                 'message': 'Device has been successfully verified',
                 'status': status.HTTP_200_OK
@@ -204,3 +281,78 @@ class VerifyDeviceView(APIView):
             'status': status.HTTP_400_BAD_REQUEST
         })
     
+
+class ResetPasswordView(APIView):
+    """
+    View for resetting user password
+    """
+    serializer_class = ResetPasswordSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            user = MainUser.custom_get(**{'email': email})
+            reset_code = EmailUtils.generate_verification_code()
+            if user is not None:
+                send_reset_password_email_async(user, reset_code)
+                MainUser.custom_update(
+                    filter_kwargs={'email': email},
+                    update_kwargs={'reset_code': reset_code}
+                )
+                return Response({
+                    'message': 'Kindly check your mail for the verification code',
+                    'status': status.HTTP_200_OK
+                })
+            return Response({
+                'error': 'Invalid email, kindly check the email provided and try again',
+                'status': status.HTTP_400_BAD_REQUEST
+            })
+        else:
+            return Response({
+                'error': serializer.errors,
+                'status': status.HTTP_400_BAD_REQUEST
+            })
+
+
+class CreateNewPasswordView(APIView):
+    """
+    View for creating a new password
+    """
+    serializer_class = ChangePasswordSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            reset_code = serializer.validated_data['reset_code']
+            password = serializer.validated_data['password']
+            redis_client = RedisClient()
+            user = MainUser.custom_get(**{'reset_code': reset_code})
+            if user is not None:
+                user_id = user.id
+                key = f'user:{user_id}:reset_code:{reset_code}'
+                if redis_client.get_key(key):
+                    MainUser.custom_update(
+                        filter_kwargs={'reset_code': reset_code},
+                        update_kwargs={'password': password, 'reset_code': None}
+                    )
+                    redis_client.delete_key(key)
+                    return Response({
+                        'message': 'Password has been successfully updated',
+                        'status': status.HTTP_200_OK
+                    })
+                return Response({
+                    'error': 'Invalid or expired verification code',
+                    'status': status.HTTP_400_BAD_REQUEST
+                })
+            return Response({
+                    'error': 'Invalid or expired verification code',
+                    'status': status.HTTP_400_BAD_REQUEST
+                })
+        else:
+            return Response({
+                'error': serializer.errors,
+                'status': status.HTTP_400_BAD_REQUEST
+            })
+            
+            
