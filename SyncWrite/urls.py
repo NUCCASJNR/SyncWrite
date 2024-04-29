@@ -23,7 +23,9 @@ from sync.views.auth import ( SignUpViewSet,
                              ResetPasswordView,
                              CreateNewPasswordView
                              )
-
+from sync.views.document import (
+    CreateDocumentView
+)
 router = routers.DefaultRouter()
 router.register('auth/signup', SignUpViewSet, basename='signup')
 
@@ -35,5 +37,6 @@ urlpatterns = [
     path('auth/login/', LoginView.as_view(), name='login'),
     path('auth/verify-device/', VerifyDeviceView.as_view(), name='verify-device'),
     path('auth/reset-password/', ResetPasswordView.as_view()),
-    path('auth/create-password/', CreateNewPasswordView.as_view())
+    path('auth/create-password/', CreateNewPasswordView.as_view()),
+    path('create-document/', CreateDocumentView.as_view())
 ]

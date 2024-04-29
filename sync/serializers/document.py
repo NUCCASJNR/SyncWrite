@@ -11,12 +11,17 @@ class DocumentSerializer(serializers.ModelSerializer):
     """
     Document serializer
     """
-    owner_email = serializers.EmailField(source='owner.email')
-    collaborator_emails = serializers.SerializerMethodField()
-
+    
+    
     class Meta:
         model = Document
-        fields = ('title', 'content', 'owner_email', 'collaborator_emails')
+        fields = ('title', 'content')
+    # owner_email = serializers.EmailField(source='owner.email')
+    # collaborator_emails = serializers.SerializerMethodField()
 
-    def get_collaborator_emails(self, obj):
-        return [collaborator.email for collaborator in obj.collaborators.all()]
+    # class Meta:
+    #     model = Document
+    #     fields = ('title', 'content', 'owner_email', 'collaborator_emails')
+
+    # def get_collaborator_emails(self, obj):
+    #     return [collaborator.email for collaborator in obj.collaborators.all()]
